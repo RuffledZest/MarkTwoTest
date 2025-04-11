@@ -14,7 +14,7 @@ export default function ArweaveIntegration() {
   const [processId, setProcessId] = useState<string>('');
   const [messageResponse, setMessageResponse] = useState<string>('');
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [walletAddress, setWalletAddress] = useState<string | null>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [operation, setOperation] = useState<ProcessOperation | null>(null);
   const [isMessageSending, setIsMessageSending] = useState<boolean>(false);

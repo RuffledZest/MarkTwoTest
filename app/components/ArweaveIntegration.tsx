@@ -6,7 +6,7 @@ import { spawnProcess, messageAR, connectWallet, disconnectWallet, getWalletAddr
 
 // Create a dynamic import for the component to ensure it only runs on the client side
 const ArweaveIntegration = () => {
-  const [walletAddress, setWalletAddress] = useState('');
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [processId, setProcessId] = useState('');
   const [messageInput, setMessageInput] = useState('');
   const [messageResponse, setMessageResponse] = useState('');
@@ -48,7 +48,7 @@ const ArweaveIntegration = () => {
     if (!isClient) return;
     try {
       await disconnectWallet();
-      setWalletAddress('');
+      setWalletAddress(null);
       setIsConnected(false);
     } catch (error) {
       console.error("Error disconnecting wallet:", error);

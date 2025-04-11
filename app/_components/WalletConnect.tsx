@@ -4,7 +4,7 @@ import { connectWallet, disconnectWallet, getWalletAddress } from '../utils/arwe
 import { Button } from '@/components/ui/button';
 
 export const WalletConnect: React.FC = () => {
-  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export const WalletConnect: React.FC = () => {
   const handleDisconnectWallet = async (): Promise<void> => {
     try {
       await disconnectWallet();
-      setWalletAddress('');
+      setWalletAddress(null);
       setIsConnected(false);
     } catch (error) {
       console.error("Error disconnecting wallet:", error);
