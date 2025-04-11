@@ -287,7 +287,7 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
 
 
  export const runLua = async()=>{
-  
+
   const res = await message({
     process: "0f33jIaPesZrcepW-335WG7cAdkhXMW1GQm5tzG2h0I",
     data:`-- AO Chain Handlers for Team and File Management
@@ -539,7 +539,7 @@ end) `,
       { name: "Action", value: "Eval" },
      
     ] ,
-    signer: createDataItemSigner(window.arweaveWallet)
+    signer: 'ZifcjgKLVpnPInkBSRA3pe4A9Niwop-3uevJP4PDPH0'
   })
  } 
 
