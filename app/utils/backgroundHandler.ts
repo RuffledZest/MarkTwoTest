@@ -150,7 +150,7 @@ const messageHandlers: Record<string, MessageHandler> = {
   }),
   
   'process_spawn_complete': createHandler('process_spawn_complete', async (message) => {
-    return { processSpawned: true, processId: message.data?.processId };
+    return { processSpawned: true, processId: message.data?.processId };  
   }),
   
   // Message handlers
