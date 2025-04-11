@@ -3,6 +3,7 @@
 // @ts-ignore - Suppressing type checking for aoconnect imports
 import { message, dryrun, createDataItemSigner } from '@permaweb/aoconnect';
 import Arweave from 'arweave';
+import { sign } from 'crypto';
 
 const isClient = typeof window !== 'undefined';
 
@@ -286,7 +287,8 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
 
 
  export const runLua = async()=>{
-  const res = await messageAR({
+  
+  const res = await message({
     process: "0f33jIaPesZrcepW-335WG7cAdkhXMW1GQm5tzG2h0I",
     data:`-- AO Chain Handlers for Team and File Management
 Handlers = {}
@@ -536,11 +538,12 @@ end) `,
     tags: [
       { name: "Action", value: "Eval" },
      
-    ] 
+    ] ,
+    signer: createDataItemSigner(window.arweaveWallet)
   })
  } 
 
- 
+
 
 
 
