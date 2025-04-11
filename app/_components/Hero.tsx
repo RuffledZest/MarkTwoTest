@@ -1,11 +1,44 @@
+"use client";
 
-
-import { LoginLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { ArrowRight } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ThreeD from "./ThreeD";
+import { useRouter } from "next/navigation";
+import { getWalletAddress } from "@/app/utils/arweaveUtils";
+import { toast } from "sonner";
 
 const Hero = () => {
+  const router = useRouter();
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      try {
+        const address = await getWalletAddress();
+        setIsWalletConnected(!!address);
+      } catch (error) {
+        setIsWalletConnected(false);
+      }
+    };
+
+    checkWalletConnection();
+    window.addEventListener("wallet-connected", checkWalletConnection);
+    window.addEventListener("wallet-disconnected", checkWalletConnection);
+
+    return () => {
+      window.removeEventListener("wallet-connected", checkWalletConnection);
+      window.removeEventListener("wallet-disconnected", checkWalletConnection);
+    };
+  }, []);
+
+  const handleGetStarted = async () => {
+    if (!isWalletConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+    router.push("/dashboard");
+  };
+
   return (
     <section className="relative bg-black text-white h-screen overflow-hidden">
       {/* 3D Background Element */}
@@ -27,12 +60,19 @@ const Hero = () => {
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <LoginLink className="flex items-center w-full rounded-lg border border-white bg-neutral-100 px-4 py-2 text-sm font-medium text-black hover:bg-neutral-300 hover:text-neutral-900 focus:outline-none focus:ring active:text-opacity-75 sm:w-auto">
+          <button
+            onClick={handleGetStarted}
+            className={`flex items-center w-full rounded-lg border border-white px-4 py-2 text-sm font-medium transition ${
+              isWalletConnected
+                ? "bg-neutral-100 text-black hover:bg-neutral-300"
+                : "bg-transparent text-white opacity-50 cursor-not-allowed"
+            }`}
+          >
             Get Started
             <p className="ml-2">
               <ArrowRight size={24} />
             </p>
-          </LoginLink>
+          </button>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 w-full h-[20%] bg-gradient-to-t from-black to-transparent z-10"></div>

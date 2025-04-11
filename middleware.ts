@@ -1,7 +1,17 @@
-import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
-export default function middleware(req: Request) {
-  return withAuth(req);
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export function middleware(request: NextRequest) {
+  const walletConnected = request.cookies.get("wallet-connected");
+  const isPublicPath = request.nextUrl.pathname === "/";
+
+  if (!walletConnected && !isPublicPath) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  return NextResponse.next();
 }
+
 export const config = {
   matcher: [
     "/dashboard",

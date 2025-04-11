@@ -4,6 +4,7 @@
 import { message, dryrun, createDataItemSigner } from '@permaweb/aoconnect';
 import Arweave from 'arweave';
 import { sign } from 'crypto';
+import Cookies from 'js-cookie';
 
 const isClient = typeof window !== 'undefined';
 
@@ -129,20 +130,20 @@ export const connectWallet = async (): Promise<void> => {
   }
 };
 
-export const getWalletAddress = async (): Promise<string> => {
-  if (!window.arweaveWallet) {
-    throw new Error("Arweave Wallet not detected");
-  }
-
+export const getWalletAddress = async (): Promise<string | null> => {
+  if (!isClient) return null;
+  
   try {
     const address = await window.arweaveWallet.getActiveAddress();
-    if (!address) {
-      throw new Error("No active wallet address found");
+    if (address) {
+      Cookies.set('wallet-connected', 'true', { expires: 7 }); // Cookie expires in 7 days
+      window.dispatchEvent(new Event('wallet-connected'));
     }
     return address;
-  } catch (err) {
-    console.error("Error getting wallet address:", err);
-    throw err;
+  } catch (error) {
+    Cookies.remove('wallet-connected');
+    window.dispatchEvent(new Event('wallet-disconnected'));
+    throw error;
   }
 };
 
@@ -284,13 +285,6 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
     throw error;
   }
 };
-
-
-
-
-
-
-
 
 export async function messageAR({ tags = [], data, anchor = '', process }: {
   tags?: any[],
