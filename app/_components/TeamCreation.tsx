@@ -36,7 +36,7 @@ export default function TeamCreation() {
         throw new Error('Please connect your Arweave wallet first');
       }
 
-      const teamId = await createTeam({ name: teamName });
+      const teamId = await createTeam(teamName);
       setSuccess(`Team created successfully! Transaction ID: ${teamId}`);
       setTeamName('');
     } catch (err: any) {
