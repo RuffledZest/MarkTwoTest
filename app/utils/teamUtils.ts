@@ -283,7 +283,7 @@ export const saveFile = async (
     // Fetch the updated files
     const filesResult = await fetchTeamFiles(teamId);
     const savedFile = filesResult.success && filesResult.data 
-      ? filesResult.data.find(f => f.name === name) 
+      ? filesResult.data.find(f => f.name === name) || null 
       : null;
     
     // Notify background handler of success
