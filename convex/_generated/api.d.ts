@@ -17,6 +17,7 @@ import type {
 import type * as files from "../files.js";
 import type * as teams from "../teams.js";
 import type * as user from "../user.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   teams: typeof teams;
   user: typeof user;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -27,7 +27,7 @@ export default function InviteDialog({ teamId }: InviteDialogProps) {
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const { user } = useKindeBrowserClient();
-  const sendInvitation = useMutation(api.teams.sendInvitation);
+  const sendInvitation = useMutation(api.teams.sendInvitation);   
 
   const handleInvite = async () => {
     try {

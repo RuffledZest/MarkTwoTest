@@ -3,14 +3,16 @@ import { mutation, query } from "./_generated/server";
 export const createNewFile = mutation({
   args: {
     fileName: v.string(),
-    teamId: v.string(),
+    teamId: v.id("teams"),
     createdBy: v.string(),
-    archieved: v.boolean(),
-    document: v.string(),
-    whiteboard: v.string(),
+    content: v.string(),
+    whiteboard: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("files", args);
+    return await ctx.db.insert("files", {
+      ...args,
+      createdAt: Date.now(),
+    });
   },
 });
 
@@ -30,10 +32,10 @@ export const getFiles = query({
 export const updateDocument = mutation({
   args: {
     _id: v.id("files"),
-    document: v.string(),
+    content: v.string(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.patch(args._id, { document: args.document });
+    return await ctx.db.patch(args._id, { content: args.content });
   },
 });
 

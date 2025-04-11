@@ -39,7 +39,7 @@ const Editor = ({
   const ref = useRef<EditorJs>();
   const [document, setDocument] = useState(rawDocument);
 
-  const updateDocument = useMutation(api.files.updateDocument);
+  const updateContent = useMutation(api.files.updateDocument);
 
   useEffect(() => {
     fileData && initEditor();
@@ -65,7 +65,7 @@ const Editor = ({
         list: List,
         checklist: checkList,
       },
-      data: fileData.document ? JSON.parse(fileData.document) : document,
+      data: fileData.content ? JSON.parse(fileData.content) : document,
     });
     editor.isReady.then(() => {
       ref.current = editor;
@@ -75,9 +75,9 @@ const Editor = ({
   const onDocumentSave = async () => {
     if (ref.current) {
       const savedData = await ref.current.save();
-      const resp = await updateDocument({
+      const resp = await updateContent({
         _id: fileId,
-        document: JSON.stringify(savedData),
+        content: JSON.stringify(savedData),
       });
 
       toast.success("Document Saved");

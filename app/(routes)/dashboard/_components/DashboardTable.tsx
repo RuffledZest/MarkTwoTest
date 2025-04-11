@@ -21,17 +21,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useRouter } from "next/navigation";
+import { Id } from "@/convex/_generated/dataModel";
 
-export interface FILE {
-  _id: string;
+export type FILE = {
+  _id: Id<"files">;
+  _creationTime: number;
   fileName: string;
+  teamId: Id<"teams">;
   createdBy: string;
-  _creationTime: string;
-  archieved: boolean;
-  teamId: string;
-  document: string;
-  whiteboard: string;
-}
+  content?: string;
+  whiteboard?: string;
+  document?: string;
+  archieved?: boolean;
+  createdAt?: number;
+};
 
 const DashboardTable = () => {
   const { fileList, setFileList } = useContext(FileListContext);

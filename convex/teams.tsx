@@ -27,11 +27,13 @@ export const getTeams = query({
 
     // Filter out any null values and combine the lists
     const allTeams = [...createdTeams, ...memberTeamDetails.filter(Boolean)];
-
-    // Remove duplicates based on team ID
-    const uniqueTeams = allTeams.filter((team, index, self) =>
-      index === self.findIndex((t) => t._id === team._id)
-    );
+    
+    // Filter out null values and remove duplicates
+    const uniqueTeams = allTeams
+      .filter((team): team is NonNullable<typeof team> => team !== null)
+      .filter((team, index, self) =>
+        index === self.findIndex((t) => t._id === team._id)
+      );
 
     return uniqueTeams;
   },
@@ -51,7 +53,7 @@ export const createTeam = mutation({
       .query("teams")
       .filter((q) => 
         q.and(
-          q.eq(q.field("name"), args.teamName),
+          q.eq(q.field("teamName"), args.teamName),
           q.eq(q.field("createdBy"), args.createdBy)
         )
       )
@@ -64,9 +66,10 @@ export const createTeam = mutation({
 
     // Create the team
     const teamId = await ctx.db.insert("teams", {
-      name: args.teamName,
+      teamName: args.teamName,
       createdBy: args.createdBy,
       createdAt: Date.now(),
+      members: [args.createdBy]
     });
 
     console.log("Team created with ID:", teamId);

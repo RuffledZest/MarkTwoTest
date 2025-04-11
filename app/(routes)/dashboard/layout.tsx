@@ -23,11 +23,11 @@ export default function DashboardLayout({
     if (user) {
       checkTeam();
     }
-  }, [user]);
+  }, [user]); 
 
   const checkTeam = async () => {
     const result = await convex.query(api.teams.getTeams, {
-      email: user?.email!,
+        email: user?.email!,
     });
     if (!result.length) {
       router.push("/team/create");

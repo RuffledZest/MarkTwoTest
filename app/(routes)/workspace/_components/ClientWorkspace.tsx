@@ -18,7 +18,7 @@ const Canvas = dynamic(() => import("./Canvas"), { ssr: false });
 
 const ClientWorkspace = ({ params }: { params: { fileId: Id<"files"> } }) => {
   const convex = useConvex();
-  const [fileData, setfileData] = useState<FILE>();
+  const [fileData, setfileData] = useState<FILE | null>(null);
   const [activeTab, setActiveTab] = useState("Both");
   const [triggerSave, setTriggerSave] = useState(false);
 
@@ -30,7 +30,9 @@ const ClientWorkspace = ({ params }: { params: { fileId: Id<"files"> } }) => {
     const file = await convex.query(api.files.getFilebyId, {
       _id: params.fileId,
     });
-    setfileData(file);
+    if (file) {
+      setfileData(file);
+    }
   };
 
   const Tabs = [

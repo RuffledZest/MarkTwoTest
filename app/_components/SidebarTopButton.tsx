@@ -44,18 +44,22 @@ const SidebarTopButton = ({ user, setActiveTeamInfo }: any) => {
   ];
   const [activeTeam, setActiveTeam] = useState<Team>();
   let [teamList, setTeamList] = useState([] as Team[]);
-
   const getTeamList = async () => {
     const result = await convex.query(api.teams.getTeams, {
       email: user?.email!,
     });
     // Remove duplicates based on team ID
-    const uniqueTeams = result.filter((team, index, self) =>
+    const uniqueTeams = result.filter((team: { _id: any; }, index: any, self: any[]) =>
       index === self.findIndex((t) => t._id === team._id)
     );
-    setTeamList(uniqueTeams as Team[]);
-    setActiveTeam(uniqueTeams[0]);
-    return uniqueTeams;
+    const mappedTeams = uniqueTeams.map(team => ({
+      _id: team._id,
+      name: team.teamName, // Map teamName to name
+      createdBy: team.createdBy
+    }));
+    setTeamList(mappedTeams as Team[]);
+    setActiveTeam(mappedTeams[0] as Team);
+    return mappedTeams;
   };
 
   useEffect(() => {

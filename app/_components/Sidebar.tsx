@@ -34,9 +34,7 @@ const Sidebar = () => {
         fileName,
         teamId: activeTeam?._id,
         createdBy: user?.email!,
-        archieved: false,
-        document: "",
-        whiteboard: "",
+        content: "",
       }).then(
         (res) => {
           toast.success("File created successfully");
