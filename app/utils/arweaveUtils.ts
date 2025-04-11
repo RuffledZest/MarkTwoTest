@@ -19,11 +19,20 @@ const arweave = Arweave.init({
   protocol: 'http',
 });
 
-export const PROCESS_ID = import.meta.env.NEXT_PUBLIC_PROCESS_ID;
+// Use a fallback value and make it safe for SSR
+export const PROCESS_ID = typeof window !== 'undefined' 
+  ? import.meta.env?.NEXT_PUBLIC_PROCESS_ID || process.env.NEXT_PUBLIC_PROCESS_ID || '0f33jIaPesZrcepW-335WG7cAdkhXMW1GQm5tzG2h0I'
+  : '0f33jIaPesZrcepW-335WG7cAdkhXMW1GQm5tzG2h0I'; // Fallback value
 
 export const safeDryrun = async (action: string, data = ""): Promise<any> => {
+  if (typeof window === 'undefined') {
+    // Return empty data when running on the server
+    console.warn('safeDryrun called during server-side rendering, returning empty data');
+    return null;
+  }
+
   if (!PROCESS_ID) {
-    throw new Error("PROCESS_ID is missing in .env");
+    throw new Error("PROCESS_ID is missing in environment variables");
   }
 
   try {
@@ -46,8 +55,13 @@ export const safeDryrun = async (action: string, data = ""): Promise<any> => {
 };
 
 export const sendMessage = async (action: string, data: any): Promise<string> => {
+  if (typeof window === 'undefined') {
+    console.warn('sendMessage called during server-side rendering');
+    throw new Error('Arweave operations cannot be performed during server-side rendering');
+  }
+
   if (!PROCESS_ID) {
-    throw new Error("PROCESS_ID is missing in .env");
+    throw new Error("PROCESS_ID is missing in environment variables");
   }
 
   try {

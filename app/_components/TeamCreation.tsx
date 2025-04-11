@@ -25,7 +25,10 @@ export default function TeamCreation() {
       }
     };
 
-    checkWalletConnection();
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      checkWalletConnection();
+    }
   }, []);
 
   // Monitor operation progress
