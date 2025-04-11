@@ -61,7 +61,7 @@ const DashboardHeader = ({ user }: any) => {
                   <img
                     src={
                       user?.picture ??
-                      "https://img.freepik.com/free-vector/graphic-designer-man_78370-159.jpg?size=626&ext=jpg&ga=GA1.1.1395880969.1709251200&semt=ais"
+                      "https://i.pinimg.com/736x/b4/bb/b2/b4bbb2198b036fe1024571ec6b60f8b8.jpg"
                     }
                     alt="logo"
                     className="w-8 h-8 rounded-full object-cover cursor-pointer"
