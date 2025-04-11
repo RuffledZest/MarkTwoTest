@@ -150,17 +150,21 @@ export async function disconnectWallet() {
 }
 
 export const spawnProcess = async (name: string, tags: any[] = []): Promise<string> => {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === 'undefined') {
+    console.warn('spawnProcess called during server-side rendering');
+    return '';
+  }
   
   try {
     // Ensure wallet is connected first
     await connectWallet();
     
+    // Use a more explicit Arweave instance creation
     const arweave = new window.Arweave({
       host: 'arweave.net',
       port: 443,
       protocol: 'https',
-      timeout: 20000,
+      timeout: 30000, // Increased timeout
     });
 
     const walletAddress = await getWalletAddress();
@@ -178,15 +182,35 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
       }
     };
 
+    console.log('Creating process with data:', processData);
+    
+    // Get the network info to properly calculate the reward
+    const networkInfo = await arweave.network.getInfo().catch((err: Error) => {
+      console.error('Failed to get network info:', err);
+      return null;
+    });
+    
     // Create transaction with all required fields
     const transaction = await arweave.createTransaction({
       data: JSON.stringify(processData),
-      last_tx: '', // Required for proper transaction creation
+      // Let Arweave calculate the last_tx
       owner: walletAddress,
       target: '', // No target for process creation
       quantity: '0', // No AR transfer
-      reward: '0' // Will be calculated by Arweave
     });
+    
+    // Calculate proper reward if possible
+    if (networkInfo) {
+      await arweave.transactions.getPrice(
+        Buffer.from(JSON.stringify(processData)).byteLength
+      ).then((reward: string) => {
+        transaction.reward = reward;
+      }).catch((err: Error) => {
+        console.warn('Could not calculate reward, using default:', err);
+      });
+    }
+
+    console.log('Transaction created:', transaction);
 
     // Add mandatory AO tags
     transaction.addTag('App-Name', 'CanvasNotesApp');
@@ -205,16 +229,17 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
     }
 
     try {
-      // Sign the transaction first
-      const signedTransaction = await window.arweaveWallet.sign(transaction);
+      console.log('About to sign transaction');
       
-      // Verify signature exists
-      if (!signedTransaction || !signedTransaction.signature) {
-        throw new Error('Transaction was not signed properly');
-      }
-
-      // Post the signed transaction using simple post for process creation
+      // Use dispatch instead of sign for better compatibility
+      const signedTransaction = await window.arweaveWallet.dispatch(transaction);
+      
+      console.log('Transaction signed:', signedTransaction.id);
+      
+      // Post with proper error handling
       const response = await arweave.transactions.post(signedTransaction);
+      
+      console.log('Transaction post response:', response);
       
       if (response.status !== 200 && response.status !== 202) {
         throw new Error(`Failed to post transaction: ${response.status}`);
@@ -222,9 +247,18 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
 
       console.log('Process spawn transaction completed:', signedTransaction.id);
       return signedTransaction.id;
-
     } catch (error) {
       console.error('Transaction signing/posting error:', error);
+      
+      // Check for specific error types
+      if (error instanceof Error) {
+        if (error.message.includes('insufficient balance')) {
+          throw new Error('Insufficient wallet balance to create process. Get some AR tokens first.');
+        } else if (error.message.includes('permission')) {
+          throw new Error('Wallet permission denied. Please allow the transaction in your wallet.');
+        }
+      }
+      
       throw error;
     }
   } catch (error) {
@@ -239,7 +273,10 @@ export async function messageAR({ tags = [], data, anchor = '', process }: {
   anchor?: string,
   process: string
 }) {
-  if (!isClient) return;
+  if (typeof window === 'undefined') {
+    console.warn('messageAR called during server-side rendering');
+    return '';
+  }
 
   try {
     // @ts-ignore - Suppressing type checking for dynamic import
@@ -260,6 +297,9 @@ export async function messageAR({ tags = [], data, anchor = '', process }: {
       }
     });
 
+    console.log('Sending message to process:', process);
+    console.log('Message data:', messageData);
+
     const allTags = [
       { name: "Protocol", value: "AO" },
       { name: "Module", value: AOModule },
@@ -269,19 +309,41 @@ export async function messageAR({ tags = [], data, anchor = '', process }: {
       ...tags
     ];
     
-    const signer = createDataItemSigner(window.arweaveWallet);
-
-    const messageId = await message({
-      data: messageData,
-      anchor,
-      process,
-      tags: allTags,
-      signer
+    // Make sure wallet is connected before signing
+    await connectWallet().catch(err => {
+      console.warn('Auto wallet connect attempt failed:', err);
     });
-
-    console.log('Message sent successfully:', messageId);
-    return messageId;
-  } catch (error) {
+    
+    try {
+      // Create a signer with error handling
+      const signer = createDataItemSigner(window.arweaveWallet);
+      
+      // Using try-catch around the specific message call for better error handling
+      const messageId = await message({
+        data: messageData,
+        anchor,
+        process,
+        tags: allTags,
+        signer
+      });
+  
+      console.log('Message sent successfully:', messageId);
+      return messageId;
+    } catch (signError: any) {
+      console.error('Error during message signing/sending:', signError);
+      
+      // More specific error based on common issues
+      if (signError.message?.includes('permission')) {
+        throw new Error('Wallet permission denied. Please allow the transaction in your wallet.');
+      } else if (signError.message?.includes('balance')) {
+        throw new Error('Insufficient wallet balance. Please add AR tokens to your wallet.');
+      } else if (signError.message?.includes('process')) {
+        throw new Error(`Invalid process ID: ${process}. Please verify the process exists.`);
+      }
+      
+      throw signError;
+    }
+  } catch (error: any) {
     console.error("Error sending message:", error);
     throw error;
   }
