@@ -1,5 +1,5 @@
 declare module '@permaweb/aoconnect' {
-  export type PermissionType = string;
+  export type PermissionType = 'ACCESS_ADDRESS' | 'SIGN_TRANSACTION' | 'DISPATCH' | 'ACCESS_PUBLIC_KEY' | 'SIGNATURE' | string;
   export interface AppInfo {
     name: string;
     logo: string;

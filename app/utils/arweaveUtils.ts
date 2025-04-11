@@ -99,6 +99,11 @@ export const checkWalletBalance = async (): Promise<boolean> => {
 };
 
 export const connectWallet = async (): Promise<void> => {
+  if (typeof window === 'undefined') {
+    console.warn('connectWallet called during server-side rendering');
+    throw new Error('Cannot connect wallet during server-side rendering');
+  }
+
   if (!window.arweaveWallet) {
     throw new Error("Arweave Wallet not detected");
   }
@@ -106,7 +111,7 @@ export const connectWallet = async (): Promise<void> => {
   try {
     // @ts-ignore - Suppressing type checking for wallet.connect
     await window.arweaveWallet.connect(
-      ["ACCESS_ADDRESS", "SIGN_TRANSACTION"],
+      ["ACCESS_ADDRESS", "SIGN_TRANSACTION", "DISPATCH"],
       {
         name: "AOmarkOne",
         logo: "https://arweave.net/oJrfJh9P79i1JdMJx3IbXUetNL-RRXJomwADSi3xALI"
@@ -231,8 +236,20 @@ export const spawnProcess = async (name: string, tags: any[] = []): Promise<stri
     try {
       console.log('About to sign transaction');
       
-      // Use dispatch instead of sign for better compatibility
-      const signedTransaction = await window.arweaveWallet.dispatch(transaction);
+      // Try dispatch first, fall back to sign if dispatch permission is missing
+      let signedTransaction;
+      try {
+        signedTransaction = await window.arweaveWallet.dispatch(transaction);
+      } catch (dispatchError: any) {
+        // Check if this is a permission error for dispatch
+        if (dispatchError.message && dispatchError.message.includes('dispatch')) {
+          console.log('Dispatch permission missing, falling back to sign');
+          signedTransaction = await window.arweaveWallet.sign(transaction);
+        } else {
+          // Re-throw if it's not a dispatch permission error
+          throw dispatchError;
+        }
+      }
       
       console.log('Transaction signed:', signedTransaction.id);
       
