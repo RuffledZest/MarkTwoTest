@@ -5,9 +5,12 @@ import Header from "./_components/Header";
 import Hero from "./_components/Hero";
 import About from "./_components/About";
 import Features from "./_components/Features";
+import { runLua } from "./utils/arweaveUtils";
 export default function Home() {
+  
   return (
     <div className="relative">
+      
       <Header />
       <Hero />
       <About />
