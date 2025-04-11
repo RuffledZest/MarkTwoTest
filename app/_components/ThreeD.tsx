@@ -1,12 +1,13 @@
-import Spline from '@splinetool/react-spline/next';
+// import Spline from '@splinetool/react-spline/next';
 
 export default function ThreeD() {
   return (
     <div className="absolute inset-0 w-full h-full z-0 pointer-events-auto">
-        <Spline
+        {/* <Spline
           scene="https://prod.spline.design/XcmGIlriYIUFXwxT/scene.splinecode"
           className="w-full h-full"
-        />
+        /> */}
+      <div>hi</div>
       </div>
   );
 }
