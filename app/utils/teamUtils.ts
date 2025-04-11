@@ -1,53 +1,114 @@
-import { getWalletAddress, connectWallet, spawnProcess, messageAR } from './arweaveUtils';
+import { safeDryrun, sendMessage } from './arweaveUtils';
 
-export interface TeamCreateOptions {
+export interface Team {
+  id: string;
   name: string;
-  description?: string;
+  creator: string;
+  created_at: number;
 }
 
-export const createTeam = async (options: TeamCreateOptions): Promise<string> => {
+export interface File {
+  id: string;
+  team_id: string;
+  name: string;
+  content: string;
+  created_by: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface Invitation {
+  id: string;
+  team_id: string;
+  invitee: string;
+  inviter: string;
+  status: string;
+  created_at: number;
+}
+
+export const fetchUserTeams = async (): Promise<Team[]> => {
   try {
-    // Ensure wallet is connected with proper permissions
-    await connectWallet();
+    const teams = await safeDryrun("GetUserTeams");
+    return teams || [];
+  } catch (err) {
+    console.error("Error fetching user teams:", err);
+    return [];
+  }
+};
 
-    // Get wallet address
-    const walletAddress = await getWalletAddress();
-    if (!walletAddress) {
-      throw new Error('Wallet not connected');
-    }
+export const fetchTeamFiles = async (teamId: string): Promise<File[]> => {
+  try {
+    const files = await safeDryrun("GetTeamFiles", JSON.stringify({ team_id: teamId }));
+    return files || [];
+  } catch (err) {
+    console.error("Error fetching team files:", err);
+    return [];
+  }
+};
 
-    // First, spawn a process for the team
-    const processId = await spawnProcess(options.name);
-    if (!processId) {
-      throw new Error('Failed to spawn team process');
-    }
+export const fetchPendingInvitations = async (): Promise<Invitation[]> => {
+  try {
+    const invitations = await safeDryrun("GetPendingInvitations");
+    return invitations || [];
+  } catch (err) {
+    console.error("Error fetching pending invitations:", err);
+    return [];
+  }
+};
 
-    console.log('Team process spawned:', processId);
+export const createTeam = async (name: string): Promise<Team | null> => {
+  try {
+    await sendMessage("CreateTeam", { name });
+    const teams = await fetchUserTeams();
+    return teams[0] || null; // Return the most recently created team
+  } catch (err) {
+    console.error("Error creating team:", err);
+    return null;
+  }
+};
 
-    // Create team data
-    const teamData = {
-      name: options.name,
-      description: options.description || '',
-      creator: walletAddress,
-      createdAt: Date.now(),
-      type: 'team-creation',
-      version: '1.0'
-    };
-
-    // Send team creation message to the process
-    const messageId = await messageAR({
-      process: processId,
-      data: teamData,
-      tags: [
-        { name: 'Action', value: 'CreateTeam' },
-        { name: 'Team-Name', value: options.name }
-      ]
+export const inviteMember = async (teamId: string, invitee: string): Promise<boolean> => {
+  try {
+    await sendMessage("InviteMember", {
+      team_id: teamId,
+      invitee: invitee,
     });
+    return true;
+  } catch (err) {
+    console.error("Error inviting member:", err);
+    return false;
+  }
+};
 
-    console.log('Team creation message sent:', messageId);
-    return processId;
-  } catch (error: any) {
-    console.error('Error creating team:', error);
-    throw new Error(error?.message || 'Failed to create team');
+export const acceptInvitation = async (invitationId: string): Promise<boolean> => {
+  try {
+    await sendMessage("AcceptInvitation", {
+      invitation_id: invitationId,
+    });
+    return true;
+  } catch (err) {
+    console.error("Error accepting invitation:", err);
+    return false;
+  }
+};
+
+export const saveFile = async (
+  teamId: string,
+  fileId: string | null,
+  name: string,
+  content: string
+): Promise<File | null> => {
+  try {
+    await sendMessage("SaveFile", {
+      team_id: teamId,
+      id: fileId,
+      name: name,
+      content: content,
+    });
+    const files = await fetchTeamFiles(teamId);
+    return files.find(f => f.name === name) || null;
+  } catch (err) {
+    console.error("Error saving file:", err);
+    return null;
   }
 }; 

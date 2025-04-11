@@ -34,6 +34,30 @@ const messageHandlers: Record<string, MessageHandler> = {
   'team_create_complete': async (message) => {
     console.log('Team creation completed', message);
     return { success: true, type: 'team_create_complete' };
+  },
+  'file_save_ready': async (message) => {
+    console.log('File save request received', message);
+    return { success: true, type: 'file_save' };
+  },
+  'file_save_complete': async (message) => {
+    console.log('File save completed', message);
+    return { success: true, type: 'file_save_complete' };
+  },
+  'invitation_sent_ready': async (message) => {
+    console.log('Invitation sent request received', message);
+    return { success: true, type: 'invitation_sent' };
+  },
+  'invitation_sent_complete': async (message) => {
+    console.log('Invitation sent completed', message);
+    return { success: true, type: 'invitation_sent_complete' };
+  },
+  'invitation_accepted_ready': async (message) => {
+    console.log('Invitation accept request received', message);
+    return { success: true, type: 'invitation_accepted' };
+  },
+  'invitation_accepted_complete': async (message) => {
+    console.log('Invitation accept completed', message);
+    return { success: true, type: 'invitation_accepted_complete' };
   }
 };
 
